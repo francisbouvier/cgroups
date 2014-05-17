@@ -5,9 +5,8 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import os
-import shutil
 
-from pycgroups.utils import get_user_cgroups
+from pycgroups.utils import get_user_cgroups, get_root_cgroup
 
 
 def create(name):
@@ -18,7 +17,15 @@ def create(name):
 
 
 def delete(name):
-    for user_cgroup in get_user_cgroups().values():
+    for hierarchy, user_cgroup in get_user_cgroups().items():
         cgroup = os.path.join(user_cgroup, name)
         if os.path.exists(cgroup):
+            # Put pids in cgroup user root hierarchy
+            tasks_file = os.path.join(user_cgroup, 'tasks')
+            with open(tasks_file, 'r+') as f:
+                tasks = f.read().split('\n')
+                root_tasks_file = os.path.join(
+                    get_root_cgroup(hierarchy), 'tasks')
+                with open(root_tasks_file, 'a+') as f:
+                    f.write('\n'.join(tasks))
             os.rmdir(cgroup)

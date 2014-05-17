@@ -53,7 +53,7 @@ def cpu_limit(name, limit=None):
 # MEMORY
 
 def _get_memory_value(unit, limit=None):
-    units = ('bytes', 'kilobytes', 'megabytes', 'gigabyes')
+    units = ('bytes', 'kilobytes', 'megabytes', 'gigabytes')
     if unit not in units:
         raise PyCgroupsException('Unit must be in %s' % units)
     if limit is None:

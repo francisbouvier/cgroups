@@ -24,8 +24,8 @@ def delete(name):
             tasks_file = os.path.join(cgroup, 'tasks')
             with open(tasks_file, 'r+') as f:
                 tasks = f.read().split('\n')
-                root_tasks_file = os.path.join(
-                    get_root_cgroup(hierarchy), 'tasks')
-                with open(root_tasks_file, 'a+') as f:
-                    f.write('\n'.join(tasks))
+            root_tasks_file = os.path.join(
+                get_root_cgroup(hierarchy), 'tasks')
+            with open(root_tasks_file, 'a+') as f:
+                f.write('\n'.join(tasks))
             os.rmdir(cgroup)

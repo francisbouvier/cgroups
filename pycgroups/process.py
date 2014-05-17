@@ -7,7 +7,7 @@ from __future__ import print_function
 import os
 
 from pycgroups.exceptions import PyCgroupsException
-from pycgroups.utils import get_user_cgroups
+from pycgroups.utils import get_user_cgroups, get_root_cgroup
 
 
 def add(name, pid):
@@ -41,16 +41,17 @@ def remove(name, pid):
         os.kill(pid, 0)
     except OSError:
         raise PyCgroupsException('Pid %s does not exists' % pid)
-    for user_cgroup in get_user_cgroups().values():
+    for hierarchy, user_cgroup in get_user_cgroups().items():
         cgroup = os.path.join(user_cgroup, name)
         if os.path.exists(cgroup):
             tasks_file = os.path.join(cgroup, 'tasks')
-            if os.path.exits(tasks_file):
+            if os.path.exists(tasks_file):
                 with open(tasks_file, 'r+') as f:
                     cgroups_pids = f.read().split('\n')
                     if str(pid) in cgroups_pids:
-                        cgroups_pids.remove(str(pid))
-                        with open(tasks_file, 'w+') as f:
-                            f.write('\n'.join(cgroups_pids))
+                        root_tasks_file = os.path.join(
+                            get_root_cgroup(hierarchy), 'tasks')
+                        with open(root_tasks_file, 'a+') as f:
+                            f.write('%s\n' % pid)
         else:
             raise PyCgroupsException('Cgroup %s does not exists' % name)

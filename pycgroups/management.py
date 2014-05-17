@@ -21,4 +21,4 @@ def delete(name):
     for user_cgroup in get_user_cgroups().values():
         cgroup = os.path.join(user_cgroup, name)
         if os.path.exists(cgroup):
-            shutil.rmtree(cgroup)
+            os.rmdir(cgroup)

@@ -26,4 +26,5 @@ def get_user_cgroups():
 
 
 def get_root_cgroup(hierarchy):
-    return os.path.join(BASE_CGROUPS_DIR, hierarchy)
+    user = getpass.getuser()
+    return os.path.join(BASE_CGROUPS_DIR, hierarchy, user)

@@ -7,7 +7,7 @@ from __future__ import print_function
 import os
 
 from pycgroups.exceptions import PyCgroupsException
-from pycgroups.utils import get_user_cgroups, get_root_cgroup
+from pycgroups.utils import get_user_cgroups
 
 
 def add(name, pid):
@@ -49,8 +49,7 @@ def remove(name, pid):
                 with open(tasks_file, 'r+') as f:
                     cgroups_pids = f.read().split('\n')
                     if str(pid) in cgroups_pids:
-                        root_tasks_file = os.path.join(
-                            get_root_cgroup(hierarchy), 'tasks')
+                        root_tasks_file = os.path.join(user_cgroup, 'tasks')
                         with open(root_tasks_file, 'a+') as f:
                             f.write('%s\n' % pid)
         else:

@@ -21,7 +21,7 @@ def delete(name):
         cgroup = os.path.join(user_cgroup, name)
         if os.path.exists(cgroup):
             # Put pids in cgroup user root hierarchy
-            tasks_file = os.path.join(user_cgroup, 'tasks')
+            tasks_file = os.path.join(cgroup, 'tasks')
             with open(tasks_file, 'r+') as f:
                 tasks = f.read().split('\n')
                 root_tasks_file = os.path.join(

@@ -134,4 +134,13 @@ If you don't specify a value it will reset to the default (ie. no limit).
 
 **pycgroups.delete(name)**
 
+Delete an existing cgroup.
 
+*name* is the name of the new cgroup that will be created.
+
+```python
+
+	import pycgroups
+
+	pycgroups.delete('charlie')
+```

@@ -1,0 +1,12 @@
+*pyc
+*.*~
+*.log
+*.coverage
+.Python
+
+bin/
+include/
+lib/
+.ropeproject/
+*/htmlcov/
+*.egg-info/

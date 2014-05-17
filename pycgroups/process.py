@@ -20,10 +20,10 @@ def add(name, pid):
         if os.path.exists(cgroup):
             tasks_file = os.path.join(cgroup, 'tasks')
             add = True
-            if os.path.exits(tasks_file):
+            if os.path.exists(tasks_file):
                 with open(tasks_file, 'r+') as f:
                     cgroups_pids = f.read().split('\n')
-                    if str(pid) not in cgroups_pids:
+                    if str(pid) in cgroups_pids:
                         add = False
                     else:
                         f = open(tasks_file, 'a+')

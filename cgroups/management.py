@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import os
 
-from pycgroups.utils import get_user_cgroups
+from cgroups.utils import get_user_cgroups
 
 
 def create(name):

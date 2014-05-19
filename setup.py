@@ -12,7 +12,7 @@ tests_requires = ['coverage']
 
 
 setup(
-    name='pycgroups',
+    name='cgroups',
     version='0.1.0',  # 3 numbers notation major.minor.bugfix_or_security
     description='Python module to manage cgroups',
     author='Francis Bouvier - Cloud Orchestra',
@@ -26,7 +26,7 @@ setup(
     install_requires=apps_pypi,
     entry_points={
         'console_scripts': [
-            'pycguser = pycgroups.pycguser:main',
+            'cgroup_user = cgroups.user:main',
         ]
     },
 )

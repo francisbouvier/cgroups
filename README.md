@@ -1,25 +1,23 @@
-# pycgroups
+# cgroups
 
-*pycgroups* is a library to use and manage cgroups in python.
+*cgroups* is a library to use and manage cgroups in python.
 
 ## Installation
 
-*xerus.api* works the same way as Django's admin.
-
 ```bash
-	pip install pycgroups
+	pip install cgroups
 ```
 
-Of course `pycgroups` works only on Linux systems, with a recent kernel and the cgroups filesystem mounted (whoch is the case of most Linux distributions since 2012).
+`cgroups` works only on Linux systems, with a recent kernel and the cgroups filesystem mounted (which is the case of most Linux distributions since 2012).
 
 **Non-root**
 
-In order to allow non-root user to manage cgroups you have to execute first the `pycguser` command.
+In order to allow non-root user to manage cgroups you have to execute first the `cgroup_user` command.
 
 Assuming you use `sudo`:
 
 ```bash
-	sudo pycguser -u USER
+	sudo cgroup_user -u USER
 ```
 
 If you don't specify `USER` it will use the current user.
@@ -29,7 +27,7 @@ If you don't specify `USER` it will use the current user.
 
 ## Usage
 
-**pycgroups.create(name)**
+**cgroups.create(name)**
 
 Create a new cgroup.
 This function create the new cgroup in the following hierarchy: `cpu`, `memory`.
@@ -38,13 +36,13 @@ This function create the new cgroup in the following hierarchy: `cpu`, `memory`.
 
 ```python
 
-	import pycgroups
+	import cgroups
 
-	pycgroups.create('charlie')
+	cgroups.create('charlie')
 ```
 
 
-**pycgroups.add(name, pid)**
+**cgroups.add(name, pid)**
 
 Add a process to an existing cgroup.
 This function add the process to all the hierarchy of the cgroup.
@@ -55,9 +53,9 @@ This function add the process to all the hierarchy of the cgroup.
 
 ```python
 
-	import pycgroups
+	import cgroups
 
-	pycgroups.add_process('charlie', 27033)
+	cgroups.add_process('charlie', 27033)
 ```
 
 If *pid* is already in cgroup hierarchy, this function will fail silently.
@@ -65,7 +63,7 @@ If *pid* is already in cgroup hierarchy, this function will fail silently.
 *N.B*: For security reasons the process has to belong to user if you execute as a non-root user.
 
 
-**pycgroups.remove(name, pid)**
+**cgroups.remove(name, pid)**
 
 Remove a process to an existing cgroup.
 This function remove the process from all the hierarchy of the cgroup.
@@ -76,16 +74,16 @@ This function remove the process from all the hierarchy of the cgroup.
 
 ```python
 
-	import pycgroups
+	import cgroups
 
-	pycgroups.remove_process('charlie', 27033)
+	cgroups.remove_process('charlie', 27033)
 ```
 
 If *pid* is not in cgroup hierarchy, this function will fail silently.
 
 *N.B*: For security reasons the process has to belong to user if you execute as a non-root user.
 
-**pycgroups.cpu_limit(name, limit)**
+**cgroups.cpu_limit(name, limit)**
 
 Set a cpu limit to an existing cgroup.
 This function use the `cpu.shares` hierarchy.
@@ -97,17 +95,17 @@ If you don't specify a value it will reset to the default (ie. no limit).
 
 ```python
 
-	import pycgroups
+	import cgroups
 
 	# Give the cgroup 'charlie' 10% of the cpu capacity
-	pycgroups.cpu_limit('charlie', 10)
+	cgroups.cpu_limit('charlie', 10)
 
 	# Reset the limit
-	pycgroups.cpu_limit('charlie')
+	cgroups.cpu_limit('charlie')
 ```
 
 
-**pycgroups.memory_limit(name, limit, unit='megabytes')**
+**cgroups.memory_limit(name, limit, unit='megabytes')**
 
 Set a memory limit to an existing cgroup (including file cache but exluding swap).
 This function use the `memory.limit_in_bytes` or the `memory.memsw.limit_in_bytes` hierarchy.
@@ -122,17 +120,17 @@ If you don't specify a value it will reset to the default (ie. no limit).
 
 ```python
 
-	import pycgroups
+	import cgroups
 
 	# Give the cgroup 'charlie' a maximum memory of 50 Mo.
-	pycgroups.mem_limit('charlie', 50)
+	cgroups.mem_limit('charlie', 50)
 
 	# Reset the limit
-	pycgroups.mem_limit('charlie')
+	cgroups.mem_limit('charlie')
 ```
 
 
-**pycgroups.delete(name)**
+**cgroups.delete(name)**
 
 Delete an existing cgroup.
 
@@ -142,7 +140,7 @@ Delete an existing cgroup.
 
 ```python
 
-	import pycgroups
+	import cgroups
 
-	pycgroups.delete('charlie')
+	cgroups.delete('charlie')
 ```

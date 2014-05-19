@@ -7,8 +7,8 @@ from __future__ import division
 
 import os
 
-from pycgroups.exceptions import PyCgroupsException
-from pycgroups.utils import get_user_cgroups
+from cgroups.exceptions import CgroupsException
+from cgroups.utils import get_user_cgroups
 
 MEMORY_DEFAULT = -1
 CPU_DEFAULT = 1024
@@ -20,7 +20,7 @@ def _get_cgroup_hierarchy(name, hierarchy):
     if os.path.exists(cgroup):
         return cgroup
     else:
-        raise PyCgroupsException('Cgroup %s does not exists' % name)
+        raise CgroupsException('Cgroup %s does not exists' % name)
 
 
 # CPU
@@ -32,10 +32,10 @@ def _get_cpu_value(limit=None):
         try:
             limit = float(limit)
         except ValueError:
-            raise PyCgroupsException('Limit must be convertible to a float')
+            raise CgroupsException('Limit must be convertible to a float')
         else:
             if limit <= float(0) or limit > float(100):
-                raise PyCgroupsException('Limit must be between 0 and 100')
+                raise CgroupsException('Limit must be between 0 and 100')
             else:
                 limit = limit / 100
                 value = int(CPU_DEFAULT * limit)
@@ -55,14 +55,14 @@ def cpu_limit(name, limit=None):
 def _get_memory_value(unit, limit=None):
     units = ('bytes', 'kilobytes', 'megabytes', 'gigabytes')
     if unit not in units:
-        raise PyCgroupsException('Unit must be in %s' % units)
+        raise CgroupsException('Unit must be in %s' % units)
     if limit is None:
         value = MEMORY_DEFAULT
     else:
         try:
             limit = int(limit)
         except ValueError:
-            raise PyCgroupsException('Limit must be convertible to an int')
+            raise CgroupsException('Limit must be convertible to an int')
         else:
             if unit == 'bytes':
                 value = limit

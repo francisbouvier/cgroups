@@ -138,6 +138,8 @@ Delete an existing cgroup.
 
 *name* is the name of the new cgroup that will be created.
 
+*N.B*: If there is still process in this cgroups, they will be moved to the user root cgroup.
+
 ```python
 
 	import pycgroups

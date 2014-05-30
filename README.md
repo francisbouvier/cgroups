@@ -1,6 +1,9 @@
 # cgroups
 
-*cgroups* is a library to use and manage cgroups in python.
+*cgroups* is a library to use and manage Linux kernel feature cgroups.
+
+For now the library only handle `cpu` and `memory`cgroups.
+
 
 ## Installation
 
@@ -8,54 +11,58 @@
 	pip install cgroups
 ```
 
-`cgroups` works only on Linux systems, with a recent kernel and the cgroups filesystem mounted (which is the case of most Linux distributions since 2012).
+`cgroups` feature works only on Linux systems, with a recent kernel and the cgroups filesystem mounted on `/sys/fs/cgroup` (which is the case of most Linux distributions since 2012).
 
-**Non-root**
+**Root and non-root**
 
-In order to allow non-root user to manage cgroups you have to execute first the `cgroup_user` command.
+To use *cgroups* the current user as to have root privileges OR existing cgroups sub-directories.
+
+In order to create those cgroups sub-directories you can execute with root privileges the `cgroup_user` command.
 
 Assuming you use `sudo`:
 
 ```bash
-	sudo cgroup_user -u USER
+	sudo user_cgroups -u USER
 ```
 
 If you don't specify `USER` it will use the current user.
 
-*N.B.*: This will only give the user permissions to manage cgroups in it's own sub-group. It wiil not give him permissions on other cgroups or system commands.
+*N.B.*: This will only give to the user permissions to manage cgroups in it's own sub-directories and it's own process. It wiil not give him permissions on other cgroups, other process or system commands.
+
+*N.B.*: You have to execute this script only once.
 
 
 ## Usage
 
-**cgroups.create(name)**
+**class Cgroup(name, hierarchies='all')**
 
-Create a new cgroup.
-This function create the new cgroup in the following hierarchy: `cpu`, `memory`.
-
-*name* is the name of the new cgroup that will be created.
-
-```python
-
-	import cgroups
-
-	cgroups.create('charlie')
-```
-
-
-**cgroups.add(name, pid)**
-
-Add a process to an existing cgroup.
-This function add the process to all the hierarchy of the cgroup.
+Create or load a cgroup.
 
 *name* is the name of the cgroup.
 
-*pid* is the pid of the process you want to add in the cgroup.
+*hierarchies* is a list of cgroup hierarchies you want to use. `all` will use all hierarchies supported by the library.
+This parameter will be ignored if the cgroup already exists (all existing hierarchies will be used).
 
 ```python
 
-	import cgroups
+	from cgroups import Cgroup
 
-	cgroups.add_process('charlie', 27033)
+	cg = Cgroup('charlie')
+```
+
+
+**Cgroup.add(pid)**
+
+Add the process to all hierarchies of the cgroup.
+
+*pid* is the pid of the process you want to add to the cgroup.
+
+```python
+
+	from cgroups import Cgroup
+
+	cg = Cgroup('charlie')
+	cg.add(27033)
 ```
 
 If *pid* is already in cgroup hierarchy, this function will fail silently.
@@ -63,54 +70,56 @@ If *pid* is already in cgroup hierarchy, this function will fail silently.
 *N.B*: For security reasons the process has to belong to user if you execute as a non-root user.
 
 
-**cgroups.remove(name, pid)**
+**Cgroup.remove(pid)**
 
-Remove a process to an existing cgroup.
-This function remove the process from all the hierarchy of the cgroup.
+Remove the process to all hierarchies of the cgroup.
 
-*name* is the name of the cgroup.
-
-*pid* is the pid of the process you want to add in the cgroup.
+*pid* is the pid of the process you want to remove of the cgroup.
 
 ```python
 
-	import cgroups
+	from cgroups import Cgroup
 
-	cgroups.remove_process('charlie', 27033)
+	cg = Cgroup('charlie')
+	cg.remove(27033)
 ```
 
 If *pid* is not in cgroup hierarchy, this function will fail silently.
 
 *N.B*: For security reasons the process has to belong to user if you execute as a non-root user.
 
-**cgroups.cpu_limit(name, limit)**
 
-Set a cpu limit to an existing cgroup.
+**Cgroup.set_cpu_limit(limit)**
+
+Set the cpu limit to the cgroup.
 This function use the `cpu.shares` hierarchy.
-
-*name* is the name of the cgroup.
 
 *limit* is the limit you want to set, in pourcentage.
 If you don't specify a value it will reset to the default (ie. no limit).
 
 ```python
 
-	import cgroups
+	from cgroups import Cgroup
 
-	# Give the cgroup 'charlie' 10% of the cpu capacity
-	cgroups.cpu_limit('charlie', 10)
+	cg = Cgroup('charlie')
+
+	# Give the cgroup 'charlie' 10% limit of the cpu capacity
+	cg.set_cpu_limit(10)
 
 	# Reset the limit
-	cgroups.cpu_limit('charlie')
+	cg.set_cpu_limit()
 ```
 
 
-**cgroups.memory_limit(name, limit, unit='megabytes')**
+**Cgroup.cpu_limit**
 
-Set a memory limit to an existing cgroup (including file cache but exluding swap).
-This function use the `memory.limit_in_bytes` or the `memory.memsw.limit_in_bytes` hierarchy.
+Get the cpu limit of the the cgroup in pourcentage.
 
-*name* is the name of the cgroup.
+
+**Cgroup.set_memory_limit(limit, unit='megabytes')**
+
+Set the memory limit of the cgroup (including file cache but exluding swap).
+This function use the `memory.limit_in_bytes` hierarchy.
 
 *limit* is the limit you want to set.
 If you don't specify a value it will reset to the default (ie. no limit).
@@ -120,27 +129,33 @@ If you don't specify a value it will reset to the default (ie. no limit).
 
 ```python
 
-	import cgroups
+	from cgroups import Cgroup
+
+	cg = Cgroup('charlie')
 
 	# Give the cgroup 'charlie' a maximum memory of 50 Mo.
-	cgroups.mem_limit('charlie', 50)
+	cg.set_memory_limit(50)
 
 	# Reset the limit
-	cgroups.mem_limit('charlie')
+	cg.set_memory_limit('charlie')
 ```
 
 
-**cgroups.delete(name)**
+**Cgroup.memory_limit**
 
-Delete an existing cgroup.
+Get the memory limit of the the cgroup in megabytes.
 
-*name* is the name of the new cgroup that will be created.
 
-*N.B*: If there is still process in this cgroups, they will be moved to the user root cgroup.
+**Cgroup.delete()**
+
+Delete the cgroup.
+
+*N.B*: If there is still process in the cgroup, they will be moved to the user cgroup sub-directories.
 
 ```python
 
-	import cgroups
+	from cgroups import Cgroup
 
-	cgroups.delete('charlie')
+	cg = Cgroup('charlie')
+	cg.delete()
 ```

@@ -22,10 +22,8 @@ In order to create those cgroups sub-directories you can execute with root privi
 Assuming you use `sudo`:
 
 ```bash
-	sudo user_cgroups -u USER
+	sudo user_cgroups USER
 ```
-
-If you don't specify `USER` it will use the current user.
 
 *N.B.*: This will only give to the user permissions to manage cgroups in it's own sub-directories and it's own process. It wiil not give him permissions on other cgroups, other process or system commands.
 

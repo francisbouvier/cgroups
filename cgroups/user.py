@@ -8,16 +8,25 @@ import os
 import getpass
 import logging
 import argparse
+from pwd import getpwnam
 
 from cgroups.common import BASE_CGROUPS, CgroupsException
 
 logger = logging.getLogger(__name__)
 
 
-def create_user_cgroups(user):
-    # Get user
-    if user is None:
-        user = getpass.getuser()
+def get_user_info(user):
+    try:
+        user_system = getpwnam(user)
+    except KeyError:
+        raise CgroupsException("User %s doesn't exists" % user)
+    else:
+        uid = user_system.pw_uid
+        gid = user_system.pw_gid
+    return uid, gid
+
+
+def create_user_cgroups(user, script=True):
     logger.info('Creating cgroups sub-directories for user %s' % user)
     # Get hierarchies and create cgroups sub-directories
     try:
@@ -40,7 +49,8 @@ def create_user_cgroups(user):
             elif e.errno == 17:
                 pass
             else:
-                raise OSError(e)
+                uid, gid = get_user_info(user)
+                os.chown(user_cgroup, uid, gid)
     logger.warn('cgroups sub-directories created for user %s' % user)
 
 
@@ -54,9 +64,7 @@ def main():
         default='INFO', help='Logging level (default "INFO")'
     )
     parser.add_argument(
-        '-u', '--user', required=False,
-        help='User to grant privileges to use cgroups'
-    )
+        'user', help='User to grant privileges to use cgroups')
     args = parser.parse_args()
 
     # Logging

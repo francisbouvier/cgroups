@@ -1,8 +1,51 @@
 # cgroups
 
-*cgroups* is a library to use and manage Linux kernel feature cgroups.
+*cgroups* is a library to manage Linux kernel feature cgroups.
+
+`cgroups` are a great Linux kernel feature to control processes ressources by groups.
 
 For now the library only handle `cpu` and `memory`cgroups.
+
+
+## Quick start
+
+Let's say you have some workers and you want them to use no more than 50 % of the CPU and 500 Mo of memory.
+
+```python
+	import os
+	import subprocess
+
+	from cgroups import Cgroup
+
+	# First we create the cgroup 'charlie' and we set it's cpu and memory limits
+	cg = Cgroup('charlie')
+	cg.set_cpu_limit(50)
+	cg.set_memory_limit(500)
+
+	# Then we a create a function to add a process in the cgroup
+	def put_in_my_cgroup():
+		pid  = os.getpid()
+		cg = Cgroup('charlie')
+		cg.add(pid)
+
+	# And we pass this function to the preexec_fn parameter of the subprocess call
+	# in order to add the process to the cgroup
+	p1 = subprocess.Popen(['worker_1'], preexec_fn=put_in_my_cgroup)
+	p2 = subprocess.Popen(['worker_2'], preexec_fn=put_in_my_cgroup)
+	p3 = subprocess.Popen(['worker_3'], preexec_fn=put_in_my_cgroup)
+
+	# Processes worker_1, worker_2, and worker_3 are now in the cgroup 'charlie'
+	# and all limits of this cgroup apply to them
+
+	# We can change the cgroup limit while those process are still running
+	cg.set_cpu_limit(80)
+
+	# And of course we can add other applications to the cgroup
+	# Let's say we have an application running with pid 27033
+	cg.add(27033)
+```
+
+*Note*: You have to execute this add with root or sudo (see below **Root and non-root usage**).
 
 
 ## Installation
@@ -13,7 +56,7 @@ For now the library only handle `cpu` and `memory`cgroups.
 
 `cgroups` feature works only on Linux systems, with a recent kernel and the cgroups filesystem mounted on `/sys/fs/cgroup` (which is the case of most Linux distributions since 2012).
 
-**Root and non-root**
+**Root and non-root usage**
 
 To use *cgroups* the current user as to have root privileges OR existing cgroups sub-directories.
 

@@ -26,7 +26,7 @@ setup(
     install_requires=apps_pypi,
     entry_points={
         'console_scripts': [
-            'cgroup_user = cgroups.user:main',
+            'user_cgroups = cgroups.user:main',
         ]
     },
 )

@@ -21,9 +21,12 @@ CPU_DEFAULT = 1024
 
 class Cgroup(object):
 
-    def __init__(self, name, hierarchies='all'):
+    def __init__(self, name, hierarchies='all', user='current'):
         self.name = name
-        self.user = getpass.getuser()
+        # Get user
+        self.user = user
+        if self.user == 'current':
+            self.user = getpass.getuser()
         # Get hierarchies
         if hierarchies == 'all':
             hierachies = HIERARCHIES

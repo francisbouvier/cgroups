@@ -32,7 +32,7 @@ Assuming you use `sudo`:
 
 ## Usage
 
-**class Cgroup(name, hierarchies='all')**
+**class Cgroup(name, hierarchies='all', user='current')**
 
 Create or load a cgroup.
 
@@ -40,6 +40,8 @@ Create or load a cgroup.
 
 *hierarchies* is a list of cgroup hierarchies you want to use. `all` will use all hierarchies supported by the library.
 This parameter will be ignored if the cgroup already exists (all existing hierarchies will be used).
+
+*user* is the cgroups sub-directories name to use. `current` will use the name of the current user.
 
 ```python
 

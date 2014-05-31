@@ -9,6 +9,7 @@ import os
 import getpass
 
 from cgroups.common import BASE_CGROUPS, CgroupsException
+from cgroups.user import create_user_cgroups
 
 HIERARCHIES = [
     'cpu',
@@ -27,14 +28,16 @@ class Cgroup(object):
         if hierarchies == 'all':
             hierachies = HIERARCHIES
         self.hierarchies = [h for h in hierachies if h in HIERARCHIES]
-        # Get or create user cgroups
+        # Get user cgroups
         self.user_cgroups = {}
+        system_hierarchies = os.listdir(BASE_CGROUPS)
         for hierarchy in self.hierarchies:
+            if hierarchy not in system_hierarchies:
+                raise CgroupsException(
+                    "Hierarchy %s is not mounted" % hierarchy)
             user_cgroup = os.path.join(BASE_CGROUPS, hierarchy, self.user)
-            if not os.path.exists(user_cgroup):
-                os.mkdir(user_cgroup)
-                # TODO: handle no roo user
             self.user_cgroups[hierarchy] = user_cgroup
+        create_user_cgroups(self.user, script=False)
         # Create name cgroups
         self.cgroups = {}
         for hierarchy, user_cgroup in self.user_cgroups.items():

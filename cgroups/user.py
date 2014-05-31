@@ -37,17 +37,26 @@ def create_user_cgroups(user, script=True):
                 "cgroups filesystem is not mounted on %s" % BASE_CGROUPS)
         else:
             raise OSError(e)
-    logger.debug('Hierarchies available: %s' % hierarchies)
+    logger.debug('Hierarchies availables: %s' % hierarchies)
     for hierarchy in hierarchies:
         user_cgroup = os.path.join(BASE_CGROUPS, hierarchy, user)
-        try:
-            os.mkdir(user_cgroup)
-        except OSError as e:
-            if e.errno == 13:
-                raise CgroupsException(
-                    "Permission denied, you don't have root privileges")
-            elif e.errno == 17:
-                pass
+        if not os.path.exists(user_cgroup):
+            try:
+                os.mkdir(user_cgroup)
+            except OSError as e:
+                if e.errno == 13:
+                    if script:
+                        raise CgroupsException(
+                            "Permission denied, you don't have root privileges")
+                    else:
+                        raise CgroupsException(
+                            "Permission denied. If you want to use cgroups " +
+                            "without root priviliges, please execute first " +
+                            "the 'user_cgroups' command (as root or sudo).")
+                elif e.errno == 17:
+                    pass
+                else:
+                    raise OSError(e)
             else:
                 uid, gid = get_user_info(user)
                 os.chown(user_cgroup, uid, gid)

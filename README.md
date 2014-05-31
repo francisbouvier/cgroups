@@ -48,13 +48,19 @@ Let's say you have some workers and you want them to use no more than 50 % of th
 *Note*: You have to execute this add with root or sudo (see below **Root and non-root usage**).
 
 
-## Installation
+## Requirements
 
-```bash
-	pip install cgroups
-```
+**Linux**
 
 `cgroups` feature works only on Linux systems, with a recent kernel and the cgroups filesystem mounted on `/sys/fs/cgroup` (which is the case of most Linux distributions since 2012).
+
+If the cgroups filesystem is mounted elsewhere you can change the value :
+
+```python
+	from cgroups import BASE_CGROUPS
+
+	BASE_CGROUPS = 'path_to_cgroups_filesystem'
+```
 
 **Root and non-root usage**
 
@@ -71,6 +77,13 @@ Assuming you use `sudo`:
 *N.B.*: This will only give to the user permissions to manage cgroups in it's own sub-directories and it's own process. It wiil not give him permissions on other cgroups, other process or system commands.
 
 *N.B.*: You have to execute this script only once.
+
+
+## Installation
+
+```bash
+	pip install cgroups
+```
 
 
 ## Usage

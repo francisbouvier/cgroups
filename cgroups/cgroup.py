@@ -8,17 +8,14 @@ from __future__ import division
 import os
 import getpass
 
-BASE_CGROUPS = '/sys/fs/cgroup'
+from cgroups.common import BASE_CGROUPS, CgroupsException
+
 HIERARCHIES = [
     'cpu',
     'memory',
 ]
 MEMORY_DEFAULT = -1
 CPU_DEFAULT = 1024
-
-
-class CgroupsException(Exception):
-    pass
 
 
 class Cgroup(object):

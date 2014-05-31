@@ -9,7 +9,7 @@ import getpass
 import logging
 import argparse
 
-from .cgroup import BASE_CGROUPS, CgroupsException
+from cgroups.common import BASE_CGROUPS, CgroupsException
 
 logger = logging.getLogger(__name__)
 

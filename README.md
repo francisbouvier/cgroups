@@ -4,7 +4,7 @@
 
 `cgroups` are a great Linux kernel feature to control processes ressources by groups.
 
-For now the library only handle `cpu` and `memory`cgroups.
+For now the library only handle `cpu` and `memory` cgroups.
 
 
 ## Quick start
@@ -50,7 +50,7 @@ cg.add(27033)
 
 ## Requirements
 
-**Linux**
+**Linux and cgroups**
 
 `cgroups` feature works only on Linux systems, with a recent kernel and the cgroups filesystem mounted on `/sys/fs/cgroup` (which is the case of most Linux distributions since 2012).
 

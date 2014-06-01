@@ -48,6 +48,13 @@ cg.add(27033)
 *Note*: You have to execute this add with root or sudo (see below **Root and non-root usage**).
 
 
+## Installation
+
+```bash
+pip install cgroups
+```
+
+
 ## Requirements
 
 **Linux and cgroups**
@@ -66,9 +73,7 @@ BASE_CGROUPS = 'path_to_cgroups_filesystem'
 
 To use *cgroups* the current user as to have root privileges **OR** existing cgroups sub-directories.
 
-In order to create those cgroups sub-directories you can use the `user_cgroups` command.
-
-Assuming you use `sudo`:
+In order to create those cgroups sub-directories you can use the `user_cgroups` command, as root.
 
 ```bash
 sudo user_cgroups USER
@@ -77,13 +82,6 @@ sudo user_cgroups USER
 *N.B.*: This will only give to the user permissions to manage cgroups in it's own sub-directories and it's own process. It wiil not give him permissions on other cgroups, other process or system commands.
 
 *N.B.*: You have to execute this script only once.
-
-
-## Installation
-
-```bash
-pip install cgroups
-```
 
 
 ## Usage

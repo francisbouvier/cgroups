@@ -12,37 +12,37 @@ For now the library only handle `cpu` and `memory`cgroups.
 Let's say you have some workers and you want them to use no more than 50 % of the CPU and 500 Mo of memory.
 
 ```python
-	import os
-	import subprocess
+import os
+import subprocess
 
-	from cgroups import Cgroup
+from cgroups import Cgroup
 
-	# First we create the cgroup 'charlie' and we set it's cpu and memory limits
+# First we create the cgroup 'charlie' and we set it's cpu and memory limits
+cg = Cgroup('charlie')
+cg.set_cpu_limit(50)
+cg.set_memory_limit(500)
+
+# Then we a create a function to add a process in the cgroup
+def in_my_cgroup():
+	pid  = os.getpid()
 	cg = Cgroup('charlie')
-	cg.set_cpu_limit(50)
-	cg.set_memory_limit(500)
+	cg.add(pid)
 
-	# Then we a create a function to add a process in the cgroup
-	def put_in_my_cgroup():
-		pid  = os.getpid()
-		cg = Cgroup('charlie')
-		cg.add(pid)
+# And we pass this function to the preexec_fn parameter of the subprocess call
+# in order to add the process to the cgroup
+p1 = subprocess.Popen(['worker_1'], preexec_fn=in_my_cgroup)
+p2 = subprocess.Popen(['worker_2'], preexec_fn=in_my_cgroup)
+p3 = subprocess.Popen(['worker_3'], preexec_fn=in_my_cgroup)
 
-	# And we pass this function to the preexec_fn parameter of the subprocess call
-	# in order to add the process to the cgroup
-	p1 = subprocess.Popen(['worker_1'], preexec_fn=put_in_my_cgroup)
-	p2 = subprocess.Popen(['worker_2'], preexec_fn=put_in_my_cgroup)
-	p3 = subprocess.Popen(['worker_3'], preexec_fn=put_in_my_cgroup)
+# Processes worker_1, worker_2, and worker_3 are now in the cgroup 'charlie'
+# and all limits of this cgroup apply to them
 
-	# Processes worker_1, worker_2, and worker_3 are now in the cgroup 'charlie'
-	# and all limits of this cgroup apply to them
+# We can change the cgroup limit while those process are still running
+cg.set_cpu_limit(80)
 
-	# We can change the cgroup limit while those process are still running
-	cg.set_cpu_limit(80)
-
-	# And of course we can add other applications to the cgroup
-	# Let's say we have an application running with pid 27033
-	cg.add(27033)
+# And of course we can add other applications to the cgroup
+# Let's say we have an application running with pid 27033
+cg.add(27033)
 ```
 
 *Note*: You have to execute this add with root or sudo (see below **Root and non-root usage**).
@@ -57,21 +57,21 @@ Let's say you have some workers and you want them to use no more than 50 % of th
 If the cgroups filesystem is mounted elsewhere you can change the value :
 
 ```python
-	from cgroups import BASE_CGROUPS
+from cgroups import BASE_CGROUPS
 
-	BASE_CGROUPS = 'path_to_cgroups_filesystem'
+BASE_CGROUPS = 'path_to_cgroups_filesystem'
 ```
 
 **Root and non-root usage**
 
-To use *cgroups* the current user as to have root privileges OR existing cgroups sub-directories.
+To use *cgroups* the current user as to have root privileges **OR** existing cgroups sub-directories.
 
-In order to create those cgroups sub-directories you can execute with root privileges the `cgroup_user` command.
+In order to create those cgroups sub-directories you can use the `user_cgroups` command.
 
 Assuming you use `sudo`:
 
 ```bash
-	sudo user_cgroups USER
+sudo user_cgroups USER
 ```
 
 *N.B.*: This will only give to the user permissions to manage cgroups in it's own sub-directories and it's own process. It wiil not give him permissions on other cgroups, other process or system commands.
@@ -82,7 +82,7 @@ Assuming you use `sudo`:
 ## Installation
 
 ```bash
-	pip install cgroups
+pip install cgroups
 ```
 
 
@@ -100,10 +100,9 @@ This parameter will be ignored if the cgroup already exists (all existing hierar
 *user* is the cgroups sub-directories name to use. `current` will use the name of the current user.
 
 ```python
+from cgroups import Cgroup
 
-	from cgroups import Cgroup
-
-	cg = Cgroup('charlie')
+cg = Cgroup('charlie')
 ```
 
 
@@ -114,11 +113,10 @@ Add the process to all hierarchies of the cgroup.
 *pid* is the pid of the process you want to add to the cgroup.
 
 ```python
+from cgroups import Cgroup
 
-	from cgroups import Cgroup
-
-	cg = Cgroup('charlie')
-	cg.add(27033)
+cg = Cgroup('charlie')
+cg.add(27033)
 ```
 
 If *pid* is already in cgroup hierarchy, this function will fail silently.
@@ -133,11 +131,10 @@ Remove the process to all hierarchies of the cgroup.
 *pid* is the pid of the process you want to remove of the cgroup.
 
 ```python
+from cgroups import Cgroup
 
-	from cgroups import Cgroup
-
-	cg = Cgroup('charlie')
-	cg.remove(27033)
+cg = Cgroup('charlie')
+cg.remove(27033)
 ```
 
 If *pid* is not in cgroup hierarchy, this function will fail silently.
@@ -154,16 +151,15 @@ This function use the `cpu.shares` hierarchy.
 If you don't specify a value it will reset to the default (ie. no limit).
 
 ```python
+from cgroups import Cgroup
 
-	from cgroups import Cgroup
+cg = Cgroup('charlie')
 
-	cg = Cgroup('charlie')
+# Give the cgroup 'charlie' 10% limit of the cpu capacity
+cg.set_cpu_limit(10)
 
-	# Give the cgroup 'charlie' 10% limit of the cpu capacity
-	cg.set_cpu_limit(10)
-
-	# Reset the limit
-	cg.set_cpu_limit()
+# Reset the limit
+cg.set_cpu_limit()
 ```
 
 
@@ -184,16 +180,15 @@ If you don't specify a value it will reset to the default (ie. no limit).
 
 
 ```python
+from cgroups import Cgroup
 
-	from cgroups import Cgroup
+cg = Cgroup('charlie')
 
-	cg = Cgroup('charlie')
+# Give the cgroup 'charlie' a maximum memory of 50 Mo.
+cg.set_memory_limit(50)
 
-	# Give the cgroup 'charlie' a maximum memory of 50 Mo.
-	cg.set_memory_limit(50)
-
-	# Reset the limit
-	cg.set_memory_limit('charlie')
+# Reset the limit
+cg.set_memory_limit('charlie')
 ```
 
 
@@ -209,9 +204,8 @@ Delete the cgroup.
 *N.B*: If there is still process in the cgroup, they will be moved to the user cgroup sub-directories.
 
 ```python
+from cgroups import Cgroup
 
-	from cgroups import Cgroup
-
-	cg = Cgroup('charlie')
-	cg.delete()
+cg = Cgroup('charlie')
+cg.delete()
 ```

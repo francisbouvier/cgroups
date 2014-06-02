@@ -95,7 +95,7 @@ Create or load a cgroup.
 *hierarchies* is a list of cgroup hierarchies you want to use. `all` will use all hierarchies supported by the library.
 This parameter will be ignored if the cgroup already exists (all existing hierarchies will be used).
 
-*user* is the cgroups sub-directories name to use (NOT SURE WHAT YOU MEAN TO SAY WITH THIS SENTENCE). `current` will use the name of the current user.
+*user* is the cgroups sub-directories name to use (NOT SURE WHAT YOU MEAN TO SAY WITH THIS SENTENCE. Could you clarify what you are trying to convey for me?). `current` will use the name of the current user.
 
 ```python
 from cgroups import Cgroup

@@ -18,6 +18,8 @@ HIERARCHIES = [
 MEMORY_DEFAULT = -1
 CPU_DEFAULT = 1024
 
+SWAPPINESS_DEFAULT = 60
+
 
 class Cgroup(object):
 
@@ -193,12 +195,12 @@ class Cgroup(object):
             return None
 
     def set_memsw_limit(self,limit=None,unit='megabytes'):
-        if 'memory' in self.groups:
+        if 'memory' in self.cgroups:
             value = self._format_memory_value(unit,limit)
-            memory_limit_file = self._get_cgroup_file(
+            swap_limit_file = self._get_cgroup_file(
                 'memory', 'memory.memsw.limit_in_bytes')
-            with open(memory_limit_file,'w+') as f:
-                f.write("%s\n" % value)
+            with open(swap_limit_file,'w+') as f:
+                f.write('%s\n' % value)
         else:
             raise CgroupsException(
                 'MEMORY hierarchy not available in this cgroup')
@@ -206,11 +208,37 @@ class Cgroup(object):
     @property
     def memsw_limit(self):
         if 'memory' in self.cgroups:
-            memory_limit_file = self._get_cgroup_file(
+            swap_limit_file = self._get_cgroup_file(
                 'memory', 'memory.memsw.limit_in_bytes')
-            with open(memory_limit_file,'r+') as f:
+            with open(swap_limit_file,'r+') as f:
                 value = f.read().split('\n')[0]
                 value = int(int(value)/ 1024 / 1024)
+                return value
+        else:
+            return None
+
+    def set_swappiness(self,swappiness=SWAPPINESS_DEFAULT):
+        if 'memory' in self.cgroups:
+            swappiness = int(swappiness)
+            if swappiness<0 and swappiness>100:
+                raise CgroupsException("swappiness value must be in range 1..100")
+            value = swappiness
+            swappiness_file = self._get_cgroup_file(
+                'memory', 'memory.swappiness')
+            with open(swappiness_file,'w+') as f:
+                f.write('%s\n' % value)
+        else:
+            raise CgroupsException(
+                'MEMORY hierarchy not available in this cgroup')
+
+    @property
+    def swappiness(self):
+        if 'memory' in self.cgroups:
+            swappiness_file = self._get_cgroup_file(
+                'memory', 'memory.swappiness')
+            with open(swappiness_file,'r+') as f:
+                value = f.read().split('\n')[0]
+                value = int(value)
                 return value
         else:
             return None

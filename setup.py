@@ -27,6 +27,7 @@ setup(
     entry_points={
         'console_scripts': [
             'user_cgroups = cgroups.user:main',
+            'cgc = cgroups.cgc:main'
         ]
     },
 )

@@ -191,3 +191,26 @@ class Cgroup(object):
                 return value
         else:
             return None
+
+    def set_memsw_limit(self,limit=None,unit='megabytes'):
+        if 'memory' in self.groups:
+            value = self._format_memory_value(unit,limit)
+            memory_limit_file = self._get_cgroup_file(
+                'memory', 'memory.memsw.limit_in_bytes')
+            with open(memory_limit_file,'w+') as f:
+                f.write("%s\n" % value)
+        else:
+            raise CgroupsException(
+                'MEMORY hierarchy not available in this cgroup')
+
+    @property
+    def memsw_limit(self):
+        if 'memory' in self.cgroups:
+            memory_limit_file = self._get_cgroup_file(
+                'memory', 'memory.memsw.limit_in_bytes')
+            with open(memory_limit_file,'r+') as f:
+                value = f.read().split('\n')[0]
+                value = int(int(value)/ 1024 / 1024)
+                return value
+        else:
+            return None

@@ -19,19 +19,25 @@ from cgroups import Cgroup
 
 logger = logging.getLogger(__name__)
 
-def run_command_with_cgroups_options(command,cpu=100,mem=-1,swapless=False):
-    cg_name = ''
-    if swapless:
-        cg_name += 'swapless'
-    cg_name += '_cpu'+str(cpu)
-    if mem != -1:
-        cg_name += '_mem'+str(mem)
-    # print (cg_name)
+def run_command_with_cgroups_options(command,cpu=None,mem=None,swapless=False,cgroup=None):
+    if cgroup is None:
+        cg_name = ''
+        if swapless:
+            cg_name += 'swapless'
+        cg_name += '_cpu'+str(cpu)
+        if mem != -1:
+            cg_name += '_mem'+str(mem)
+        # print (cg_name)
+
+    else:
+        cg_name = cgroup
 
     cg = Cgroup(cg_name)
-    cg.set_cpu_limit(cpu)
 
-    if mem != -1:
+    if cpu is not None:
+        cg.set_cpu_limit(cpu)
+
+    if mem is not None:
         cg.set_memory_limit(mem)
 
     if swapless:
@@ -44,7 +50,6 @@ def run_command_with_cgroups_options(command,cpu=100,mem=-1,swapless=False):
 
     process = subprocess.Popen([command],preexec_fn=preexec_fn)
     process.wait()
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -81,7 +86,7 @@ def main():
             action='store',
             type=int,
             help='run command with some percent of cpu-resource',
-            default=100,
+            default=None,
         )
     parser_run.add_argument(
             '--mem',
@@ -89,7 +94,15 @@ def main():
             action='store',
             type=int,
             help='run command with memory limit',
-            default=-1
+            default=None
+        )
+    parser_run.add_argument(
+            '--cgroup',
+            dest='cgroup',
+            action='store',
+            type=str,
+            help='cgroup name',
+            default=None,
         )
 
     parser_add_user = subparsers.add_parser('useradd',help='User to grant privileges to use cgroups')
@@ -120,7 +133,7 @@ def main():
 
     if hasattr(args,'command'):
         print ("runing command {}".format(args.command))
-        run_command_with_cgroups_options(args.command,args.cpu,args.mem,args.no_swap if args.no_swap else False)
+        run_command_with_cgroups_options(args.command,cpu=args.cpu,mem=args.mem,swapless=args.no_swap if args.no_swap else False,cgroup=args.cgroup)
 
     elif hasattr(args,'user'):
         print ("adding user {}".format(args.user))

@@ -66,21 +66,27 @@ def main():
             default="INFO",
         )
 
-    subparsers = parser.add_subparsers(help='sub-command help')
-
-    parser_run = subparsers.add_parser('run',help='run new process')
-    parser_run.add_argument(
-            'command',
-            type=str,
-            help='command to run with some cgroup configuration'
+    parser.add_argument(
+            'action',
+            choices=('useradd','run','cgadd','addpid','rmpid','cgls','frz','ufrz'),
+            help="action to do",
         )
-    parser_run.add_argument(
+
+    parser.add_argument(
+            '--command',
+            dest='command',
+            action='store',
+            type=str,
+            help='command to run with some cgroup configuration',
+            default=None,
+        )
+    parser.add_argument(
             '--no-swap',
             dest='no_swap',
             action='store_true',
             help='run command with swap memmory limit set to 0 bytes'
         )
-    parser_run.add_argument(
+    parser.add_argument(
             '--cpu',
             dest='cpu',
             action='store',
@@ -88,7 +94,7 @@ def main():
             help='run command with some percent of cpu-resource',
             default=None,
         )
-    parser_run.add_argument(
+    parser.add_argument(
             '--mem',
             dest='mem',
             action='store',
@@ -96,7 +102,7 @@ def main():
             help='run command with memory limit',
             default=None
         )
-    parser_run.add_argument(
+    parser.add_argument(
             '--cgroup',
             dest='cgroup',
             action='store',
@@ -105,13 +111,17 @@ def main():
             default=None,
         )
 
-    parser_add_user = subparsers.add_parser('useradd',help='User to grant privileges to use cgroups')
-    parser_add_user.add_argument(
-            'user',
+    parser.add_argument(
+            '--user',
+            dest='user',
+            action='store',
             help='username to grant privileges to use cgroups',
+            default=None,
         )
 
     args = parser.parse_args()
+
+    print (args)
 
     # Logging
     formatter = logging.Formatter(
@@ -131,11 +141,11 @@ def main():
 
     print (args)
 
-    if hasattr(args,'command'):
+    if args.action == "run":
         print ("runing command {}".format(args.command))
         run_command_with_cgroups_options(args.command,cpu=args.cpu,mem=args.mem,swapless=args.no_swap if args.no_swap else False,cgroup=args.cgroup)
 
-    elif hasattr(args,'user'):
+    elif args.action == "useradd":
         print ("adding user {}".format(args.user))
         create_user_cgroups(args.user)
 

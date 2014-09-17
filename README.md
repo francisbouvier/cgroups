@@ -179,17 +179,20 @@ If you don't provide an argument to this method, the menthod will set the memory
 
 **Cgroup.memsw_limit**
 
-Get the swap-memory limit of the cgroup in bytes
+Get the swap+memory limit of the cgroup in bytes
 
 **Cgroup.set_memsw_limit(limit, unit='megabytes')**
 
-Set the swap-memory limit of the cgroup.
+Set the swap+memory limit of the cgroup.
 The function uses the `memory.memsw.limit_in_bytes` hierarchy.
 
 *limit* is the limit you want to set.
 If you don't provide an argument to this method, the menthod will set the memory limit to the default memory limit (ie. no limit)
 
 *unit* is the unit used for the limit. Available choices are 'bytes', 'kilobytes', 'megabytes' and 'gigabytes'. Default is 'megabytes'.
+
+Note: this paramether can not be less then memory.limit_in_bytes,
+because it sums memory and swap usage.
 
 **Cgroup.swappiness**
 

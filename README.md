@@ -248,3 +248,10 @@ from cgroups import Cgroup
 cg = Cgroup('charlie')
 cg.delete()
 ```
+
+**Console tool cgc**
+```bash
+sudo cgc useradd $(whoami)
+
+cgc run bash --cpu 10 --mem 20 --no-swap
+```

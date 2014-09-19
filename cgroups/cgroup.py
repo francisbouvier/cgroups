@@ -18,6 +18,8 @@ HIERARCHIES = [
 MEMORY_DEFAULT = -1
 CPU_DEFAULT = 1024
 
+SWAPPINESS_DEFAULT = 60
+
 
 class Cgroup(object):
 
@@ -122,7 +124,6 @@ class Cgroup(object):
                     value = int(round(CPU_DEFAULT * limit))
         return value
 
-
     def set_cpu_limit(self, limit=None):
         if 'cpu' in self.cgroups:
             value = self._format_cpu_value(limit)
@@ -168,7 +169,6 @@ class Cgroup(object):
                     value = limit * 1024 * 1024 * 1024
         return value
 
-
     def set_memory_limit(self, limit=None, unit='megabytes'):
         if 'memory' in self.cgroups:
             value = self._format_memory_value(unit, limit)
@@ -191,3 +191,116 @@ class Cgroup(object):
                 return value
         else:
             return None
+
+    def set_memsw_limit(self,limit=None,unit='megabytes'):
+        if 'memory' in self.cgroups:
+            value = self._format_memory_value(unit,limit)
+            swap_limit_file = self._get_cgroup_file(
+                'memory', 'memory.memsw.limit_in_bytes')
+            with open(swap_limit_file,'w+') as f:
+                f.write('%s\n' % value)
+        else:
+            raise CgroupsException(
+                'MEMORY hierarchy not available in this cgroup')
+
+    @property
+    def memsw_limit(self):
+        if 'memory' in self.cgroups:
+            swap_limit_file = self._get_cgroup_file(
+                'memory', 'memory.memsw.limit_in_bytes')
+            with open(swap_limit_file,'r+') as f:
+                value = f.read().split('\n')[0]
+                value = int(int(value)/ 1024 / 1024)
+                return value
+        else:
+            return None
+
+    def set_swappiness(self,swappiness=SWAPPINESS_DEFAULT):
+        if 'memory' in self.cgroups:
+            swappiness = int(swappiness)
+            if swappiness<0 and swappiness>100:
+                raise CgroupsException("swappiness value must be in range 1..100")
+            value = swappiness
+            swappiness_file = self._get_cgroup_file(
+                'memory', 'memory.swappiness')
+            with open(swappiness_file,'w+') as f:
+                f.write('%s\n' % value)
+        else:
+            raise CgroupsException(
+                'MEMORY hierarchy not available in this cgroup')
+
+    @property
+    def swappiness(self):
+        if 'memory' in self.cgroups:
+            swappiness_file = self._get_cgroup_file(
+                'memory', 'memory.swappiness')
+            with open(swappiness_file,'r+') as f:
+                value = f.read().split('\n')[0]
+                value = int(value)
+                return value
+        else:
+            return None
+
+    @property
+    def is_under_oom(self):
+        if 'memory' in self.cgroups:
+            oom_control_file = self._get_cgroup_file(
+                'memory', 'memory.oom_control')
+            with open(oom_control_file,'r+') as f:
+                oom_kill_disable,under_oom = map(int,f.read().split('\n'))
+                oom_kill_disable = True if oom_kill_disable == 1 else False
+
+                under_oom = True if under_oom == 1 else False
+
+                return under_oom
+        else:
+            return None
+
+    def set_omm_kill(self,allow=True):
+        if 'memory' in self.cgroups:
+            oom_control_file = self._get_cgroup_file(
+                'memory', 'memory.oom_control')
+            oom_kill_disable = 0 if allow else 1
+            under_oom = 1 if self.is_under_oom else 0
+            with open(oom_control_file,'w+') as f:
+                f.write("oom_kill_disable %s\nunder_oom %s\n" % (oom_kill_disable,under_oom))
+        else:
+            raise CgroupsException(
+                'MEMORY hierarchy not available in this cgroup')
+
+    def allow_kill_under_oom(self):
+        self.set_omm_kill(allow=True)
+
+    def disallow_kill_under_oom(self):
+        self.set_omm_kill(allow=False)
+
+    # FREEZER
+
+    @property
+    def freeze_state(self):
+        if 'freezer' in self.cgroups:
+            freezer_state_file = self._get_cgroup_file(
+                'freezer', 'freezer.state')
+            with open(freezer_state_file,'r+') as f:
+                state = f.read().split('\n')[0]
+                return state
+        else:
+            return None
+
+    def set_freezer_state(self,state):
+        if state not in ('THAWED','FROZEN'):
+            raise CgroupsException("there is two values of freezer.state paramener available - THAWED|FROZEN.")
+        if 'freezer' in self.cgroups:
+            freezer_state_file = self._get_cgroup_file(
+                'freezer', 'freezer.state')
+            with open(freezer_state_file,'w+') as f:
+                f.write("%s\n" % state)
+        else:
+            raise CgroupsException(
+                'FREEZER hierarchy not available in this cgroup')
+
+    def freeze(self):
+        self.set_freezer_state(state="FROZEN")
+
+    def unfreeze(self):
+        self.set_freezer_state(state="THAWED")

@@ -17,10 +17,11 @@ import subprocess
 
 from cgroups import Cgroup
 
-# First we create the cgroup 'charlie' and we set it's cpu and memory limits
+# First we create the cgroup 'charlie' and we set it's cpu, memory and swap limits
 cg = Cgroup('charlie')
 cg.set_cpu_limit(50)
 cg.set_memory_limit(500)
+cg.set_memsw_limit(500)
 
 # Then we a create a function to add a process in the cgroup
 def in_my_cgroup():
@@ -176,6 +177,38 @@ If you don't provide an argument to this method, the menthod will set the memory
 
 *unit* is the unit used for the limit. Available choices are 'bytes', 'kilobytes', 'megabytes' and 'gigabytes'. Default is 'megabytes'.
 
+**Cgroup.memsw_limit**
+
+Get the swap+memory limit of the cgroup in bytes
+
+**Cgroup.set_memsw_limit(limit, unit='megabytes')**
+
+Set the swap+memory limit of the cgroup.
+The function uses the `memory.memsw.limit_in_bytes` hierarchy.
+
+*limit* is the limit you want to set.
+If you don't provide an argument to this method, the menthod will set the memory limit to the default memory limit (ie. no limit)
+
+*unit* is the unit used for the limit. Available choices are 'bytes', 'kilobytes', 'megabytes' and 'gigabytes'. Default is 'megabytes'.
+
+Note: this paramether can not be less then memory.limit_in_bytes,
+because it sums memory and swap usage.
+
+**Cgroup.swappiness**
+
+Get the swappiness option of the cgroup
+
+**Cgroup.set_swappiness(swappiness=60)**
+
+swappiness may be in range 1..100
+vm.swappiness = 0   Version 3.5 and over: disables swapping. Prior to version 3.5: The kernel will swap only to avoid an out of memory condition.
+
+vm.swappiness = 1   Version 3.5 and over: Minimum swappiness without disabling it entirely
+
+vm.swappiness = 60  The default value.
+
+vm.swappiness = 100     The kernel will swap aggressively.
+
 
 ```python
 from cgroups import Cgroup
@@ -187,6 +220,17 @@ cg.set_memory_limit(50)
 
 # Reset the limit
 cg.set_memory_limit('charlie')
+
+cg.set_swappiness(swappiness=0)
+
+swappiness = cg.swappiness
+
+#getting the swap-memory limit of the current cgroup
+limit_in_bytes = cg.memsw_limit
+
+#set the swap-memory limit of the current cgroup
+cg.set_memsw_limit(100)
+
 ```
 
 
@@ -206,4 +250,11 @@ from cgroups import Cgroup
 
 cg = Cgroup('charlie')
 cg.delete()
+```
+
+**Console tool cgc**
+```bash
+sudo cgc useradd $(whoami)
+
+cgc run bash --cpu 10 --mem 20 --no-swap
 ```

@@ -7,6 +7,8 @@ from __future__ import division
 
 import os
 import getpass
+import subprocess
+from subprocess import Popen, PIPE
 
 from cgroups.common import BASE_CGROUPS, CgroupsException
 from cgroups.user import create_user_cgroups
@@ -14,6 +16,7 @@ from cgroups.user import create_user_cgroups
 HIERARCHIES = [
     'cpu',
     'memory',
+    'blkio',
 ]
 MEMORY_DEFAULT = -1
 CPU_DEFAULT = 1024
@@ -48,6 +51,10 @@ class Cgroup(object):
             if not os.path.exists(cgroup):
                 os.mkdir(cgroup)
             self.cgroups[hierarchy] = cgroup
+        # Blkio related members
+        self.devName = None
+        self.devMaj = None
+        self.devMin = None
 
     def _get_cgroup_file(self, hierarchy, file_name):
         return os.path.join(self.cgroups[hierarchy], file_name)
@@ -168,6 +175,14 @@ class Cgroup(object):
                     value = limit * 1024 * 1024 * 1024
         return value
 
+    def _get_device_major_minor(self, devName):
+        devPath = "/dev/" + devName
+        proc = Popen(['ls', '-l', devPath], stdout=PIPE)
+        p2 = Popen(['cut', '-d', " ", '-f', '5'], stdin=proc.stdout, stdout=PIPE)
+        p3 = Popen(['cut', '-d', ",", '-f', '1'], stdin=p2.stdout, stdout=PIPE)
+        proc = Popen(['ls', '-l', devPath], stdout=PIPE)
+        p4 = Popen(['cut', '-d', " ", '-f', '6'], stdin=proc.stdout, stdout=PIPE)
+        return p3.stdout.read().decode("utf-8").strip('\n'), p4.stdout.read().decode("utf-8").strip('\n')
 
     def set_memory_limit(self, limit=None, unit='megabytes'):
         if 'memory' in self.cgroups:
@@ -191,3 +206,63 @@ class Cgroup(object):
                 return value
         else:
             return None
+
+    # BLKIO
+
+    def set_blkio_dev(self, devName=None):
+        if 'blkio' in self.cgroups:
+            self.devName = devName
+            self.devMaj, self.devMin = self._get_device_major_minor(self.devName)
+
+    def blkio_dev(self):
+        if 'blkio' in self.cgroups and self.devName != None:
+            return self.devName
+        else:
+            return None
+
+    def set_blkio_read_limit(self, limit=None, unit='megabytes'):
+        if 'blkio' in self.cgroups and self.devName != None:
+            value = self._format_memory_value(unit, limit)
+            blkio_read_bps_file = self._get_cgroup_file(
+                    'blkio', 'blkio.throttle.read_bps_device')
+            with open(blkio_read_bps_file, 'w+') as f:
+                f.write('{}:{} {}'.format(self.devMaj, self.devMin, value))
+        else:
+            raise CgroupsException(
+                    'BLKIO hierarchy not available in this cgroup \
+                            or devName is not set')
+
+    def blkio_read_limit(self):
+        if 'blkio' in self.cgroups and self.devName != None:
+            read_limit_file = self._get_cgroup_file(
+                    'blkio', 'blkio.throttle.read_bps_device')
+            with open(read_limit_file, 'r+') as f:
+                value = f.read().split('\n')[0]
+            value = value.split(' ')[1]
+            return value
+        else:
+            return None
+
+    def set_blkio_write_limit(self, limit=None, unit='megabytes'):
+        if 'blkio' in self.cgroups and self.devName != None:
+            value = self._format_memory_value(unit, limit)
+            blkio_write_bps_file = self._get_cgroup_file(
+                    'blkio', 'blkio.throttle.write_bps_device')
+            with open(blkio_write_bps_file, 'w+') as f:
+                f.write('{}:{} {}'.format(self.devMaj, self.devMin, value))
+        else:
+            raise CgroupsException(
+                    'BLKIO hierarchy not available in this cgroup \
+                            or devName is not set')
+
+    def blkio_write_limit(self):
+        if 'blkio' in self.cgroups and self.devName != None:
+            write_limit_file = self._get_cgroup_file(
+                    'blkio', 'blkio.throttle.write_bps_device')
+            with open(write_limit_file, 'r+') as f:
+                value = f.read().split('\n')[0]
+            value = value.split(' ')[1]
+            return value
+        else:
+            raise CgroupsException(
+                    'BLKIO hierarchy not available in this cgroup')

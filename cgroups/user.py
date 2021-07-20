@@ -60,7 +60,7 @@ def create_user_cgroups(user, script=True):
             else:
                 uid, gid = get_user_info(user)
                 os.chown(user_cgroup, uid, gid)
-    logger.warn('cgroups sub-directories created for user %s' % user)
+    logger.warning('cgroups sub-directories created for user %s' % user)
 
 
 def main():

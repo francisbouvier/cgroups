@@ -29,8 +29,8 @@ class Cgroup(object):
             self.user = getpass.getuser()
         # Get hierarchies
         if hierarchies == 'all':
-            hierachies = HIERARCHIES
-        self.hierarchies = [h for h in hierachies if h in HIERARCHIES]
+            hierarchies = HIERARCHIES
+        self.hierarchies = [h for h in hierarchies if h in HIERARCHIES]
         # Get user cgroups
         self.user_cgroups = {}
         system_hierarchies = os.listdir(BASE_CGROUPS)
